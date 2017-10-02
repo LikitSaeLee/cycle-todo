@@ -1,60 +1,35 @@
 import {div, input, p, button} from '@cycle/dom'
 import xs from 'xstream'
+import sampleCombine from 'xstream/extra/sampleCombine'
+import todoInput from './components/todoInput'
+import todoList from './components/todoList'
 
-function intent(domSource) {
-  const inputTodo$ = domSource.
-    select('#todo-input').
-    events('input');
+export function App (sources) {
+  const todoes$ = xs.create();
 
-  const clickAddTodo$ = domSource.
-    select('#add-todo-btn').
-    events('click');
+  const todoInputSink = todoInput(sources);
+  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$ }});
 
-  return { inputTodo$, clickAddTodo$ };
-}
+  const {clickAddTodo$, currentTodo$} = todoInputSink;
+  const {deleteTodo$} = todoListSink;
 
-function model(actions) {
-  const { inputTodo$, clickAddTodo$ } = actions;
+  const todo$ = clickAddTodo$
+    .compose(sampleCombine(currentTodo$))
+    .map(([_, todo]) => todo)
+    .startWith(null);
 
-  const todo$ = inputTodo$
-    .map(ev => ev.target.value)
-    .startWith('');
+  todo$.addListener({
+    next: (todo) => { todoes$.shamefullySendNext(todo); console.log(todo)},
+    error: () => {},
+    complete: () => {},
+  })
 
-  const addTodo$ = clickAddTodo$
-    .map(() => todo$.last())
-    .startWith('Add a todo now.');
-
-  return { todo$, addTodo$ };
-}
-
-function view(state) {
-  const { addTodo$, todo$ } = state;
-
-  return xs.combine(addTodo$, todo$).map(([addTodo, todo]) =>
+  const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([
-      input('#todo-input'),
-      button('#add-todo-btn', 'Add Todo'),
-      p(todo),
-      p(addTodo),
+      todoInput,
+      todoList,
     ])
   )
 
-}
-
-export function App (sources) {
-  const actions = intent(sources.DOM);
-  const state = model(actions);
-  const vtree$ = view(state);
-
-  const sinks = {
-    DOM: vtree$,
-    Log: (addTodo$) => {
-      addTodo$.subscribe({
-        next: (todo) => { console.log(`New Todo: ${todo}`) },
-        error: (err) => {},
-        completed: () => {},
-      });
-    }
-  }
-  return sinks
+  return { DOM: vdom$ }
 }
