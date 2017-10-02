@@ -8,21 +8,17 @@ export function App (sources) {
   const todoes$ = xs.create();
 
   const todoInputSink = todoInput(sources);
-  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$ }});
 
   const {clickAddTodo$, currentTodo$} = todoInputSink;
-  const {deleteTodo$} = todoListSink;
 
   const todo$ = clickAddTodo$
     .compose(sampleCombine(currentTodo$))
     .map(([_, todo]) => todo)
     .startWith(null);
 
-  todo$.addListener({
-    next: (todo) => { todoes$.shamefullySendNext(todo); console.log(todo)},
-    error: () => {},
-    complete: () => {},
-  })
+  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$: todo$ }});
+
+  const {deleteTodo$} = todoListSink;
 
   const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([
