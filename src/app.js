@@ -16,9 +16,7 @@ export function App (sources) {
     .map(([_, todo]) => todo)
     .startWith(null);
 
-  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$: todo$ }});
-
-  const {deleteTodo$} = todoListSink;
+  const todoListSink = todoList({DOM: sources.DOM, props: { todo$ }});
 
   const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([

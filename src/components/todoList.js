@@ -7,7 +7,7 @@ function renderTodoList(todoes) {
 }
 
 export default function todoList(sources) {
-  const { todoes$ } = sources.props;
+  const { todo$ } = sources.props;
 
   const deleteTodo$ = sources
     .DOM
@@ -16,8 +16,17 @@ export default function todoList(sources) {
     .map(ev => ev.target.textContent)
     .startWith([]);
 
-  const vdom$ = todoes$
+  const deletedTodoes$ = deleteTodo$
+    .fold((todoes, todo) => [...todoes, todo], []);
+
+  const todoes$ = todo$
     .fold((todoes, todo) => [...todoes, todo], [])
+
+  const vdom$ = xs
+    .combine(todoes$, deletedTodoes$)
+    .map(([todoes, deletedTodoes]) =>
+      todoes.filter(todo => !deletedTodoes.includes(todo))
+    )
     .map(todoes => renderTodoList(todoes));
 
   return {
