@@ -23,8 +23,8 @@ function model(actions) {
 
   const addTodo$ = clickAddTodo$
     .compose(sampleCombine(currentTodo$))
-    .map(([_, todo]) => todo)
-    .startWith(null);
+    .map(([_, todo]) => ({title: todo, completed: false}))
+    .startWith({title: '', completed: false});
 
   return { currentTodo$, addTodo$ };
 }

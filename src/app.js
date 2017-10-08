@@ -5,31 +5,36 @@ import todoInput from './components/todoInput'
 import todoList from './components/todoList'
 
 export function App (sources) {
-  const filterDeleted = ([currentList, deletedList]) => {
-    return currentList.filter(item => !deletedList.includes(item))
+  const toCompleted = ([currentTodoes, completedList]) => {
+    return currentTodoes.map(todo => {
+      if (completedList.includes(todo.title)) {
+        return {title: todo.title, completed: true}
+      }
+
+      return todo;
+    })
   }
 
   const todoInputSink = todoInput(sources);
 
   const {addTodo$} = todoInputSink.state;
 
-  const todoes$ = addTodo$
-    .fold((todoes, todo) => [...todoes, todo], []);
+  const addTodoes$ = addTodo$
+    .fold((addTodoes, todo) => [...addTodoes, todo], []);
 
-  const deleteTodoProxy$ = xs.create();
+  const completeTodoProxy$ = xs.create();
 
-  const deleteTodoes$ = deleteTodoProxy$
-    .fold((todoes, todo) => [...todoes, todo], [])
-    .debug();
+  const completeTodoes$ = completeTodoProxy$
+    .fold((addTodoes, todo) => [...addTodoes, todo], []);
 
-  const visibleTodoes$ = xs.combine(todoes$, deleteTodoes$)
-    .map(filterDeleted)
+  const todoes$ = xs.combine(addTodoes$, completeTodoes$)
+    .map(toCompleted)
 
-  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$: visibleTodoes$ }});
+  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$ }});
 
-  const {deleteTodo$} = todoListSink.state;
+  const {completeTodo$} = todoListSink.state;
 
-  deleteTodoProxy$.imitate(deleteTodo$);
+  completeTodoProxy$.imitate(completeTodo$);
 
   const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([
