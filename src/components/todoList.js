@@ -14,32 +14,26 @@ function intent(domSource) {
   return { clickTodo$ }
 }
 
-function model(actions, todo$) {
+function model(actions) {
   const { clickTodo$ } = actions;
 
   const deleteTodo$ = clickTodo$
-    .map(ev => ev.target.textContent)
-    .startWith([]);
+    .map(ev => ev.target.textContent);
 
-  const todoes$ = todo$
-    .fold((todoes, todo) => [...todoes, todo], []);
-
-  return { deleteTodo$, todoes$ }
+  return { deleteTodo$ }
 }
 
-function view(state) {
-  const {todoes$} = state;
-
+function view(state, todoes$) {
   return todoes$
     .map(todoes => renderTodoList(todoes));
 }
 
 export default function todoList(sources) {
-  const { todo$ } = sources.props;
+  const { todoes$ } = sources.props;
 
   const actions = intent(sources.DOM);
-  const state = model(actions, todo$);
-  const vdom$ = view(state);
+  const state = model(actions);
+  const vdom$ = view(state, todoes$);
 
   return {
     DOM: vdom$,

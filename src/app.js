@@ -5,8 +5,9 @@ import todoInput from './components/todoInput'
 import todoList from './components/todoList'
 
 export function App (sources) {
-  const filterDeleted = ([currentList, deletedList]) =>
-    currentList.filter(item => !item.includes(deletedList))
+  const filterDeleted = ([currentList, deletedList]) => {
+    return currentList.filter(item => !deletedList.includes(item))
+  }
 
   const todoInputSink = todoInput(sources);
 
@@ -18,12 +19,13 @@ export function App (sources) {
   const deleteTodoProxy$ = xs.create();
 
   const deleteTodoes$ = deleteTodoProxy$
-    .fold((todoes, todo) => [...todoes, todo], []);
+    .fold((todoes, todo) => [...todoes, todo], [])
+    .debug();
 
   const visibleTodoes$ = xs.combine(todoes$, deleteTodoes$)
     .map(filterDeleted)
 
-  const todoListSink = todoList({DOM: sources.DOM, props: { todo$: visibleTodoes$ }});
+  const todoListSink = todoList({DOM: sources.DOM, props: { todoes$: visibleTodoes$ }});
 
   const {deleteTodo$} = todoListSink.state;
 
