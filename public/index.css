@@ -1,0 +1,21 @@
+.todo-input-container {
+  padding-left: 30%;
+}
+
+.todo-list-item * {
+  display: inline-block;
+}
+
+.todo-list-item button {
+  margin-left: 10px;
+}
+
+.todo-list {
+  border: solid;
+  padding: 20px;
+}
+
+#app {
+  width: 50%;
+  margin-left: 25%;
+}

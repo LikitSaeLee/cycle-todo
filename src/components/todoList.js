@@ -3,8 +3,14 @@ import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
 
 function renderTodoList(todoes) {
-  return div(
-    todoes
+  const visibleTodoes = todoes.filter(todo => todo.title !== '');
+
+  if (visibleTodoes.length === 0) {
+    return div();
+  }
+
+  return div('.todo-list',
+    visibleTodoes
     .filter(todo => todo.title !== '')
     .map(todoItem)
   )
@@ -13,13 +19,13 @@ function renderTodoList(todoes) {
 function todoItem(todo) {
   if (todo.completed) {
     const style = { textDecoration: 'line-through' }
-    return div([
+    return div('.todo-list-item', [
       p('.todo-item', { style }, todo.title),
       button('.remove', 'Remove')
     ])
   }
 
-  return div([
+  return div('.todo-list-item', [
     p('.todo-item', todo.title),
     button('.remove', 'Remove')
   ])

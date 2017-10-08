@@ -1,4 +1,4 @@
-import {div, input, p, button} from '@cycle/dom'
+import {div, input, p, button, h1} from '@cycle/dom'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
 
@@ -33,7 +33,8 @@ function view(state) {
   const { currentTodo$ } = state;
 
   return currentTodo$.map(todo =>
-    div([
+    div('.todo-input-container', [
+      h1('.todo-title', 'Cycle Todo App'),
       input('#todo-input'),
       button('#todo-button', 'Add'),
       p(todo),
