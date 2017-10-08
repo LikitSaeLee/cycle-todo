@@ -5,8 +5,12 @@ import todoInput from './components/todoInput'
 import todoList from './components/todoList'
 
 export function App (sources) {
-  const toCompleted = ([currentTodoes, completedList]) => {
+  const combineTodoAction = ([currentTodoes, completedList, deletedList]) => {
     return currentTodoes.map(todo => {
+      if (deletedList.includes(todo.title)) {
+        return {title: '', completed: false}
+      }
+
       if (completedList.includes(todo.title)) {
         return {title: todo.title, completed: true}
       }
@@ -33,17 +37,23 @@ export function App (sources) {
 
   const completeTodoProxy$ = xs.create();
 
+  const removeTodoProxy$ = xs.create();
+
   const completeTodoes$ = completeTodoProxy$
     .fold(collectCompleted, []);
 
-  const todoes$ = xs.combine(addTodoes$, completeTodoes$)
-    .map(toCompleted)
+  const removeTodoes$ = removeTodoProxy$
+    .fold((todoes, todo) => [...todoes, todo], []);
+
+  const todoes$ = xs.combine(addTodoes$, completeTodoes$, removeTodoes$)
+    .map(combineTodoAction);
 
   const todoListSink = todoList({DOM: sources.DOM, props: { todoes$ }});
 
-  const {completeTodo$} = todoListSink.state;
+  const {completeTodo$, removeTodo$} = todoListSink.state;
 
   completeTodoProxy$.imitate(completeTodo$);
+  removeTodoProxy$.imitate(removeTodo$);
 
   const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([

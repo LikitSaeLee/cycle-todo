@@ -6,14 +6,23 @@ function renderTodoList(todoes) {
   return div(
     todoes
     .filter(todo => todo.title !== '')
-    .map(todo => {
-      if (todo.completed) {
-        return p('.todo-item', { style: { textDecoration: 'line-through' } }, todo.title)
-      }
-
-      return p('.todo-item', todo.title)
-    })
+    .map(todoItem)
   )
+}
+
+function todoItem(todo) {
+  if (todo.completed) {
+    const style = { textDecoration: 'line-through' }
+    return div([
+      p('.todo-item', { style }, todo.title),
+      button('.remove', 'Remove')
+    ])
+  }
+
+  return div([
+    p('.todo-item', todo.title),
+    button('.remove', 'Remove')
+  ])
 }
 
 function intent(domSource) {
@@ -21,16 +30,23 @@ function intent(domSource) {
     .select('.todo-item')
     .events('click')
 
-  return { clickTodo$ }
+  const clickRemoveTodo$ = domSource
+    .select('.remove')
+    .events('click');
+
+  return { clickTodo$, clickRemoveTodo$ }
 }
 
 function model(actions) {
-  const { clickTodo$ } = actions;
+  const { clickTodo$, clickRemoveTodo$ } = actions;
 
   const completeTodo$ = clickTodo$
     .map(ev => ev.target.textContent);
 
-  return { completeTodo$ }
+  const removeTodo$ = clickRemoveTodo$
+    .map(ev => ev.target.previousSibling.textContent)
+
+  return { completeTodo$, removeTodo$ }
 }
 
 function view(state, todoes$) {
