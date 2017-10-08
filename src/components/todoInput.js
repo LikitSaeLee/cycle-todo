@@ -1,5 +1,6 @@
 import {div, input, p, button} from '@cycle/dom'
 import xs from 'xstream'
+import sampleCombine from 'xstream/extra/sampleCombine'
 
 function intent(domSource) {
   const inputTodo$ = domSource.
@@ -20,7 +21,12 @@ function model(actions) {
     .map(ev => ev.target.value)
     .startWith('');
 
-  return { currentTodo$ };
+  const addTodo$ = clickAddTodo$
+    .compose(sampleCombine(currentTodo$))
+    .map(([_, todo]) => todo)
+    .startWith(null);
+
+  return { currentTodo$, addTodo$ };
 }
 
 function view(state) {
@@ -41,13 +47,10 @@ export default function todoInput(sources) {
   const state = model(actions);
 
   const vtree$ = view(state);
-  const {clickAddTodo$} = actions;
-  const {currentTodo$} = state;
 
   const sinks = {
     DOM: vtree$,
-    currentTodo$,
-    clickAddTodo$,
+    state,
   }
   return sinks
 }

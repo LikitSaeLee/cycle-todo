@@ -7,36 +7,30 @@ function renderTodoList(todoes) {
 }
 
 function intent(domSource) {
-  const deleteTodo$ = domSource
+  const clickTodo$ = domSource
     .select('.todo-item')
     .events('click')
-    .map(ev => ev.target.textContent)
-    .startWith([]);
 
-  return { deleteTodo$ }
+  return { clickTodo$ }
 }
 
 function model(actions, todo$) {
+  const { clickTodo$ } = actions;
 
-  const { deleteTodo$ } = actions;
-
-  const deletedTodoes$ = deleteTodo$
-    .fold((todoes, todo) => [...todoes, todo], []);
+  const deleteTodo$ = clickTodo$
+    .map(ev => ev.target.textContent)
+    .startWith([]);
 
   const todoes$ = todo$
     .fold((todoes, todo) => [...todoes, todo], []);
 
-  return { deletedTodoes$, todoes$ }
+  return { deleteTodo$, todoes$ }
 }
 
 function view(state) {
-  const {todoes$, deletedTodoes$} = state;
+  const {todoes$} = state;
 
-  return xs
-    .combine(todoes$, deletedTodoes$)
-    .map(([todoes, deletedTodoes]) =>
-      todoes.filter(todo => !deletedTodoes.includes(todo))
-    )
+  return todoes$
     .map(todoes => renderTodoList(todoes));
 }
 
@@ -48,6 +42,7 @@ export default function todoList(sources) {
   const vdom$ = view(state);
 
   return {
-    DOM: vdom$
+    DOM: vdom$,
+    state,
   }
 }

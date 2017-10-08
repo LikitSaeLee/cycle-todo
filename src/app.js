@@ -5,18 +5,29 @@ import todoInput from './components/todoInput'
 import todoList from './components/todoList'
 
 export function App (sources) {
-  const todoes$ = xs.create();
+  const filterDeleted = ([currentList, deletedList]) =>
+    currentList.filter(item => !item.includes(deletedList))
 
   const todoInputSink = todoInput(sources);
 
-  const {clickAddTodo$, currentTodo$} = todoInputSink;
+  const {addTodo$} = todoInputSink.state;
 
-  const todo$ = clickAddTodo$
-    .compose(sampleCombine(currentTodo$))
-    .map(([_, todo]) => todo)
-    .startWith(null);
+  const todoes$ = addTodo$
+    .fold((todoes, todo) => [...todoes, todo], []);
 
-  const todoListSink = todoList({DOM: sources.DOM, props: { todo$ }});
+  const deleteTodoProxy$ = xs.create();
+
+  const deleteTodoes$ = deleteTodoProxy$
+    .fold((todoes, todo) => [...todoes, todo], []);
+
+  const visibleTodoes$ = xs.combine(todoes$, deleteTodoes$)
+    .map(filterDeleted)
+
+  const todoListSink = todoList({DOM: sources.DOM, props: { todo$: visibleTodoes$ }});
+
+  const {deleteTodo$} = todoListSink.state;
+
+  deleteTodoProxy$.imitate(deleteTodo$);
 
   const vdom$ = xs.combine(todoInputSink.DOM, todoListSink.DOM).map(([todoInput, todoList]) =>
     div([
