@@ -15,6 +15,15 @@ export function App (sources) {
     })
   }
 
+  const collectCompleted = (todoes, newTodo) => {
+    if (todoes.includes(newTodo)) {
+      // remove it
+      return todoes.filter(todo => todo !== newTodo)
+    }
+
+    return [...todoes, newTodo]
+  }
+
   const todoInputSink = todoInput(sources);
 
   const {addTodo$} = todoInputSink.state;
@@ -25,7 +34,7 @@ export function App (sources) {
   const completeTodoProxy$ = xs.create();
 
   const completeTodoes$ = completeTodoProxy$
-    .fold((addTodoes, todo) => [...addTodoes, todo], []);
+    .fold(collectCompleted, []);
 
   const todoes$ = xs.combine(addTodoes$, completeTodoes$)
     .map(toCompleted)
