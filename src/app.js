@@ -74,11 +74,14 @@ export function App (sources) {
   )
 
   // store to local storage
-  const storeTodoes$ = todoes$.map(todoes => ({
-    type: 'set',
-    key: 'todoes',
-    value: JSON.stringify(todoes)
-  })).startWith({type: 'get', key: 'todoes'});
+  const storeTodoes$ = todoes$
+    .map(todoes => todoes.filter(todo => todo.title !== '')) // remove empty todo
+    .map(todoes => ({
+      type: 'set',
+      key: 'todoes',
+      value: JSON.stringify(todoes)
+    }))
+    .startWith({type: 'get', key: 'todoes'});
 
   return { DOM: vdom$, storage: storeTodoes$ }
 }

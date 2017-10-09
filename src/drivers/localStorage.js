@@ -6,8 +6,6 @@ export default function makeLocalStorageDriver() {
 
     localStoreAction$.addListener({
       next: ({type, key, value}) => {
-        console.log(`Received ${type} ${key} ${value}`);
-
         if (type === 'set') {
           localStorage.setItem(key, value);
           return
