@@ -32,8 +32,19 @@ export function App (sources) {
 
   const {addTodo$} = todoInputSink.state;
 
+  // getting todoes from localStorage
+  const localTodoes$ = sources
+    .storage
+    .filter(value => value !== null)
+    .map(value => JSON.parse(value))
+    .startWith([]);
+
   const addTodoes$ = addTodo$
     .fold((addTodoes, todo) => [...addTodoes, todo], []);
+
+  const allTodoes$ = xs.combine(addTodoes$, localTodoes$).map(([addTodoes, localTodoes]) =>
+    [...addTodoes, ...localTodoes]
+  )
 
   const completeTodoProxy$ = xs.create();
 
@@ -45,7 +56,7 @@ export function App (sources) {
   const removeTodoes$ = removeTodoProxy$
     .fold((todoes, todo) => [...todoes, todo], []);
 
-  const todoes$ = xs.combine(addTodoes$, completeTodoes$, removeTodoes$)
+  const todoes$ = xs.combine(allTodoes$, completeTodoes$, removeTodoes$)
     .map(combineTodoAction);
 
   const todoListSink = todoList({DOM: sources.DOM, props: { todoes$ }});
@@ -62,5 +73,12 @@ export function App (sources) {
     ])
   )
 
-  return { DOM: vdom$ }
+  // store to local storage
+  const storeTodoes$ = todoes$.map(todoes => ({
+    type: 'set',
+    key: 'todoes',
+    value: JSON.stringify(todoes)
+  })).startWith({type: 'get', key: 'todoes'});
+
+  return { DOM: vdom$, storage: storeTodoes$ }
 }
