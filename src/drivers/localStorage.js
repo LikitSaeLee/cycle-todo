@@ -1,4 +1,5 @@
 import xs from 'xstream';
+import {adapt} from '@cycle/run/lib/adapt';
 
 export default function makeLocalStorageDriver() {
   return (localStoreAction$) => {
@@ -21,6 +22,6 @@ export default function makeLocalStorageDriver() {
       complete: () => { console.log('Completed') }
     })
 
-    return fetchLocalStoreProxy$;
+    return adapt(fetchLocalStoreProxy$);
   }
 }
