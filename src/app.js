@@ -35,7 +35,7 @@ export function App (sources) {
   // getting todoes from localStorage
   const localTodoes$ = sources
     .storage
-    .filter(value => value !== null)
+    .filter(value => value)
     .map(value => JSON.parse(value))
     .startWith([]);
 

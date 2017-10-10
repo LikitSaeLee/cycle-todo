@@ -1,7 +1,7 @@
 import {div, input, p, button, h1} from '@cycle/dom'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
-import R from 'ramda';
+import { path, last } from 'ramda';
 
 function intent(domSource) {
   const inputTodo$ = domSource.
@@ -16,7 +16,7 @@ function intent(domSource) {
 }
 
 function model(actions) {
-  const eventValue = R.path(['target', 'value'])
+  const eventValue = path(['target', 'value'])
   const todoFromTitle = (title) => ({title: title, completed: false})
 
   const { inputTodo$, clickAddTodo$ } = actions;
@@ -27,7 +27,7 @@ function model(actions) {
 
   const addTodo$ = clickAddTodo$
     .compose(sampleCombine(currentTodo$))
-    .map(R.last)
+    .map(last)
     .map(todoFromTitle)
 
   return { currentTodo$, addTodo$ };

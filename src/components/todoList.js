@@ -1,13 +1,13 @@
 import {div, input, p, button} from '@cycle/dom'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
-import R from 'ramda'
+import { isEmpty, path } from 'ramda'
 import { validTodo, completedTodo } from '../modules/todo'
 
 function renderTodoList(todoes) {
   const visibleTodoes = todoes.filter(validTodo);
 
-  if (R.isEmpty(visibleTodoes)) {
+  if (isEmpty(visibleTodoes)) {
     return div();
   }
 
@@ -46,8 +46,8 @@ function intent(domSource) {
 }
 
 function model(actions) {
-  const textContent = R.path(['target', 'textContent'])
-  const previousSiblingTextContent = R.path(['target', 'previousSibling', 'textContent'])
+  const textContent = path(['target', 'textContent'])
+  const previousSiblingTextContent = path(['target', 'previousSibling', 'textContent'])
 
   const { clickTodo$, clickRemoveTodo$ } = actions;
 
