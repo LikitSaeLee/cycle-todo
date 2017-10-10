@@ -2,29 +2,29 @@ import xs from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 import { curry, cond, propEq } from 'ramda'
 
-const setItem = (action) => {
-  localStorage.setItem(action.key, action.value);
-}
+const setItem = curry((storage, action) => {
+  storage.setItem(action.key, action.value);
+});
 
-const fetchItem = (sendFn, action) => {
-  const value = localStorage.getItem(action.key)
+const fetchItem = curry((sendFn, storage, action) => {
+  const value = storage.getItem(action.key)
   sendFn(value);
-}
+});
+
+const fetchSendItem = (getItemFn, setItemFn) => (action) => cond([
+  [propEq('type', 'get'), getItemFn],
+  [propEq('type', 'set'), setItemFn]
+])
 
 export default function makeLocalStorageDriver() {
   return (localStoreAction$) => {
-
     const fetchLocalStoreProxy$ = xs.create();
 
-    const sendItemToProxy = curry(fetchItem)(value => fetchLocalStoreProxy$.shamefullySendNext(value))
-
-    const fetchSendItem = cond([
-      [propEq('type', 'get'), sendItemToProxy],
-      [propEq('type', 'set'), setItem]
-    ])
+    const setItemToStorage = setItem(localStorage);
+    const sendItemToProxy = fetchItem(value => fetchLocalStoreProxy$.shamefullySendNext(value), localStorage)
 
     localStoreAction$.addListener({
-      next: fetchSendItem,
+      next: fetchSendItem(setItemToStorage, sendItemToProxy),
       error: () => {},
       complete: () => { console.log('Completed') }
     })
