@@ -1,24 +1,26 @@
 import {div, input, p, button} from '@cycle/dom'
 import xs from 'xstream'
 import sampleCombine from 'xstream/extra/sampleCombine'
+import R from 'ramda'
+import { validTodo, completedTodo } from '../modules/todo'
 
 function renderTodoList(todoes) {
-  const visibleTodoes = todoes.filter(todo => todo.title !== '');
+  const visibleTodoes = todoes.filter(validTodo);
 
-  if (visibleTodoes.length === 0) {
+  if (R.isEmpty(visibleTodoes)) {
     return div();
   }
 
   return div('.todo-list',
     visibleTodoes
-    .filter(todo => todo.title !== '')
     .map(todoItem)
   )
 }
 
 function todoItem(todo) {
-  if (todo.completed) {
+  if (completedTodo(todo)) {
     const style = { textDecoration: 'line-through' }
+
     return div('.todo-list-item', [
       p('.todo-item', { style }, todo.title),
       button('.remove', 'Remove')
@@ -44,13 +46,16 @@ function intent(domSource) {
 }
 
 function model(actions) {
+  const textContent = R.path(['target', 'textContent'])
+  const previousSiblingTextContent = R.path(['target', 'previousSibling', 'textContent'])
+
   const { clickTodo$, clickRemoveTodo$ } = actions;
 
   const completeTodo$ = clickTodo$
-    .map(ev => ev.target.textContent);
+    .map(textContent)
 
   const removeTodo$ = clickRemoveTodo$
-    .map(ev => ev.target.previousSibling.textContent)
+    .map(previousSiblingTextContent)
 
   return { completeTodo$, removeTodo$ }
 }
