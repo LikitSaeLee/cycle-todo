@@ -41,7 +41,7 @@ function view(state) {
       h1('.todo-title', 'Cycle Todo App'),
       input('#todo-input'),
       button('#todo-button', 'Add'),
-      p(todo),
+      p('.current-todo', todo),
     ])
   )
 
